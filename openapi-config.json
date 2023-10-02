@@ -1,0 +1,9 @@
+{
+  "apiFile": "./src/fixtures/emtpyApi.ts",
+  "schemaFile": "https://stoplight.io/api/v1/projects/spacetraders/spacetraders/nodes/reference/SpaceTraders.json?fromExportButton=true&snapshotType=http_service&deref=optimizedBundle",
+  "apiImport": "emptyApi",
+  "outputFile": "./src/services/space-traders.ts",
+  "exportName": "spaceTradersApi",
+  "hooks": true,
+  "tag": true
+}
