@@ -1,48 +1,24 @@
-import { spaceTradersApi } from "@/services/space-traders";
-import { getTotalPayment } from "@/utils/contracts";
+import { type Contract, spaceTradersApi } from "@/services/space-traders";
+import { contractColumns } from "@/utils/contracts";
 import { match } from "ts-pattern";
+import { DataTable } from "./ui/data-table";
 
-export function ActiveContracts() {
-	const query = spaceTradersApi.useGetMyContractsQuery({
-		page: 1,
-		limit: 20,
-	});
-
-	const contracts = query.data?.data ?? [];
-	const activeContracts = contracts.filter(contract => contract.accepted);
-	const isEmpty = contracts.length === 0;
-
-	return match(query)
-		.with({ isLoading: true }, () => <p>Loading...</p>)
-		.with({ isError: true }, () => <p>Error</p>)
-		.otherwise(() => (
-			<article className="relative border border-amber-main px-3 py-4">
-				<header className="absolute -top-3 left-3 bg-amber-main px-3">
-					<h1 className="font-bold uppercase text-black">Active contracts</h1>
-				</header>
-				<section>
-					{activeContracts.map((contract) => (
-						<article key={contract.id}>
-							<p>{contract.type}</p>
-							<p>{contract.terms.deadline}</p>
-							<p>{contract.expiration}</p>
-							<p>{contract.factionSymbol}</p>
-						</article>
-					))}
-				</section>
-			</article>
-		));
+interface Props {
+	filterFn: (contract: Contract) => boolean
 }
 
-export function Contracts() {
+const activeContracts = (c: Contract) => c.accepted;
+const inactiveContracts = (c: Contract) => !c.accepted;
+
+export function Contracts({ filterFn = inactiveContracts }: Props) {
 	const query = spaceTradersApi.useGetMyContractsQuery({
 		page: 1,
 		limit: 20,
 	});
-	const [acceptContract] = spaceTradersApi.usePostMyContractsByContractIdAcceptMutation();
 
-	const contracts = query.data?.data ?? [];
-	const isEmpty = contracts.length === 0;
+	let contracts = query.data?.data ?? [];
+
+	if (filterFn) contracts = contracts.filter(filterFn);
 
 	return match(query)
 		.with({ isLoading: true }, () => <p>Loading...</p>)
@@ -53,22 +29,12 @@ export function Contracts() {
 					<h1 className="font-bold uppercase text-black">Contracts</h1>
 				</header>
 				<section>
-					<article className="flex gap-3">
-						<p>Type</p>
-						<p>Faction</p>
-						<p>Payment</p>
-						<p>Available until</p>
-					</article>
-					{contracts.map((contract) => (
-						<article key={contract.id} className="flex">
-							<p>{contract.type}</p>
-							<p>{contract.factionSymbol}</p>
-							<p>{getTotalPayment(contract.terms.payment)}</p>
-							<p>{contract.deadlineToAccept}</p>
-							<button onClick={() => { void acceptContract({ contractId: contract.id }) }}>Accept</button>
-						</article>
-					))}
+					<DataTable columns={contractColumns} data={contracts} />
 				</section>
 			</article>
 		));
+}
+
+export function ActiveContracts() {
+	return <Contracts filterFn={activeContracts} />
 }

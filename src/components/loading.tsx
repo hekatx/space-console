@@ -18,7 +18,7 @@ const loading = cva({
     {
       size: "small",
       type: "long",
-      class: "!w-4",
+      class: "h-1 w-6",
     },
     {
       size: "medium",
